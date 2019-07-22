@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.12.x
+  - master
+
+deploy:
+  provider: releases
+  file: hcl2json
+  skip_cleanup: true
+  on:
+    tags: true
