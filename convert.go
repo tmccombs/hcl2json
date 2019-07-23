@@ -152,7 +152,6 @@ func (c *converter) convertStringPart(expr hclsyntax.Expression) (string, error)
 		return c.convertTemplateFor(v.Tuple.(*hclsyntax.ForExpr))
 	default:
 		// treating as an embedded expression
-		fmt.Printf("Using default for %T\n", expr)
 		return c.wrapExpr(expr), nil
 	}
 }

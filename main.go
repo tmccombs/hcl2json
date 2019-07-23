@@ -23,11 +23,13 @@ func main() {
 	var err error
 
 	var filename = flag.Arg(0)
-	if filename == "" {
-		logger.Fatalf("Usage: must supply a file to convert")
+	var bytes []byte
+	if filename == "" || filename == "-" {
+		bytes, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		bytes, err = ioutil.ReadFile(filename)
 	}
 
-	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		logger.Fatalf("Failed to read file: %s\n", err)
 	}
