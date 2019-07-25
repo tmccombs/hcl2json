@@ -12,9 +12,16 @@ import (
 
 type jsonObj map[string]interface{}
 
+// Convert an hcl File to a json serializable object
+// This assumes that the body is a hclsyntax.Body
+func convertFile(file *hcl.File) (jsonObj, error) {
+	c := converter{bytes: file.Bytes}
+	body := file.Body.(*hclsyntax.Body)
+	return c.convertBody(body)
+}
+
 type converter struct {
 	bytes []byte
-	diags hcl.Diagnostics
 }
 
 func (c *converter) rangeSource(r hcl.Range) string {

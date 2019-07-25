@@ -69,8 +69,5 @@ func getHclJSON(bytes []byte, filename string) (interface{}, error) {
 	if diags.HasErrors() {
 		return nil, diags
 	}
-	body := file.Body.(*hclsyntax.Body)
-
-	c := converter{bytes: bytes}
-	return c.convertBody(body)
+	return convertFile(file)
 }
