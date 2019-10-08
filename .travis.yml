@@ -1,32 +1,32 @@
 language: go
 go:
-- 1.12.x
-- master
+  - 1.12.x
+  - master
 
 matrix:
   allow_failures:
-  - go: master
+    - go: master
 
 # script:
 # - go run main.go
 
 before_deploy:
-- export XCOMPILE='go build -o hcl2json_${TRAVIS_TAG}_${GOOS}_${GOARCH}${EXT} -ldflags="-X main.Version=${TRAVIS_TAG}" github.com/userhas404d/hcl2json'
-- GOOS=linux   GOARCH=386            eval "$XCOMPILE"
-- GOOS=linux   GOARCH=amd64          eval "$XCOMPILE"
-- GOOS=linux   GOARCH=arm            eval "$XCOMPILE"
-- GOOS=darwin  GOARCH=386            eval "$XCOMPILE"
-- GOOS=darwin  GOARCH=amd64          eval "$XCOMPILE"
-- GOOS=windows GOARCH=386   EXT=.exe eval "$XCOMPILE"
-- GOOS=windows GOARCH=amd64 EXT=.exe eval "$XCOMPILE"
+  - export XCOMPILE='go build -o hcl2json_${TRAVIS_TAG}_${GOOS}_${GOARCH}${EXT} -ldflags="-X main.Version=${TRAVIS_TAG}" github.com/userhas404d/hcl2json'
+  - GOOS=linux   GOARCH=386            eval "$XCOMPILE"
+  - GOOS=linux   GOARCH=amd64          eval "$XCOMPILE"
+  - GOOS=linux   GOARCH=arm            eval "$XCOMPILE"
+  - GOOS=darwin  GOARCH=386            eval "$XCOMPILE"
+  - GOOS=darwin  GOARCH=amd64          eval "$XCOMPILE"
+  - GOOS=windows GOARCH=386   EXT=.exe eval "$XCOMPILE"
+  - GOOS=windows GOARCH=amd64 EXT=.exe eval "$XCOMPILE"
 deploy:
   provider: releases
   api_key:
-    secure: cjiL5SDEY4gpuBJZqoXnSRNRVz2eJrcgRdHulpgTDbvegKd7gkaqHTY7zpv39wyf7hngq8/H+P1guxAIQT9rxf5eVvSfnOLz/MeW4wd7X4OwpODyV1G7T6xcuJHTMgl4PaeWxvpeT4EkNirWvlv26oxnDeuJN172V0arxK3lsU8cIk+6u6/tiuBDcM21HAw+szTbNBTN1gGIlQ3MyeBRIppz+S7CRNUOAPjclMk4Q7rPtr8/sv7whv8ik5aoV/aZE93Vl6Kkt/4J+c8P04vEy6/Z3Ln5HjDXiCrN0Kjd3rWkm5pQ9Kb9oe6jGssJo9l5ScMKOfXoQ8EPD5CYVaIkj0bM5RNyG5tYdq00ntAPSx2BqNN/akKqOOdqvLdc1NtX/vrPISz2V0MxllwlpFiiNS2VPLqccutRBulo3IJ5I5Hh2vwpWr1LOwqR56LgO5RPyQ7F0X2ZhUIak1EZoikptrDd1HpBx4EEaTCY0KLQn+Ul+rwCOw2Y6zO1LpYWHTCcaO1ChZKc/SVBfQaa+cnFodldKRmPGC9aqv6NUfvCT3P/7H51GMdQgD1rfSREw6JkSq3fFOcmlsWiuShyEbJJ5CtpVFJY82msW8KTYhHP+I+pZflznfsmwx7dY3gpqWodrZmKi8b7Rw3R5GEHOETtuDNzafWmdln8kIXc6jFPtEI=
+    secure: QrI0NZbxapQwBvcRkbBGU4uE0s6Hma/ELlK4y0cEkPH4tRbckW+tTFg6T5q72QhoIDNb0FIGNEwPG07X35OAGZjKjRWnyqMmuCAS2VWuIP+sAzCPp+T4NuOOaGsaY60+TPh+AUykVJKgGyw4aEKtYHk00SGlYfA0WOotS2dV42M1oL0QB6mkFqKJc4IqZzum0mRzDNpjUfNGr+vFNIbTR/bTcTU/VK9VLc1BBTkJRLA0uY4Y2nVDrRq6RQ+Mjb1WpusXMGi9T7q8CfUHPbveJ65A615PhNw65GYmAv9GM6N6KZvModQJzLNAG9Hjtzr4dSmxChhPWOKmBIIN7hOdlB5jQuxecPxXIHyp/ZY6GyRnEWoFzx2APibbW5iXEnpbXyzcQjpBDWtaADKKBfwoamHilM4vRpORpCH2TO6Ujb1trvU/CBNT/NRJPJHxeFT+E17ERYprFzIECyk2KH42oYtJlfXUxS4E+/1PPvHnPWydNvjrr5GpLOuX6NV3fnkBNchltY7OSa7GqysCNcLtXTeL+QBDaCk7+ypWnG4gRkiEkYd8aIaPHBMEdOK0pyVS1RoLesE7FQ5/2FlLSLFndatlLHWUy+M/eK2qhc1r+BhOmjL46x+NmxVOYIdNgyg8E/y49lCvxW+7jr1W5UmY/AQKRAzWLKM4Z/m2MgRxN6s=
   file_glob: true
   file: hcl2json_*
   skip_cleanup: true
   on:
     tags: true
     go: 1.12.x
-    repo: userhas404d/hcl2json
+    repo: tmccombs/hcl2json
