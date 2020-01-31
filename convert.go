@@ -67,6 +67,7 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 		} else {
 			obj := make(jsonObj)
 			out[key] = obj
+			out = obj
 		}
 		key = label
 	}
