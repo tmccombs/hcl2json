@@ -46,9 +46,39 @@ locals {
 		%{if true ? false : true}"gotcha"\n%{else}4%{endif}
 	EOF
 }
+
+data "terraform_remote_state" "remote" {
+	backend = "s3"
+
+	config = {
+		profile = var.profile
+		region  = var.region
+		bucket  = "mybucket"
+		key     = "mykey"
+	}
+}
+
+variable "profile" {}
+
+variable "region" {
+	default = "us-east-1"
+}
 `
 
 const expectedJSON = `{
+	"data": {
+		"terraform_remote_state": {
+			"remote": {
+				"backend": "s3",
+				"config": {
+					"bucket": "mybucket",
+					"key": "mykey",
+					"profile": "${var.profile}",
+					"region": "${var.region}"
+				}
+			}
+		}
+	},
 	"locals": [
 		{
 			"arr": [
@@ -83,7 +113,13 @@ const expectedJSON = `{
 			"heredoc2": "\t\tAnother heredoc, that\n\t\tdoesn't remove indentation\n\t\t${local.other.3}\n\t\t%{if true ? false : true}\"gotcha\"\\n%{else}4%{endif}\n",
 			"simple": "${4 - 2}"
 		}
-	]
+	],
+	"variable": {
+		"profile": {},
+		"region": {
+			"default": "us-east-1"
+		}
+	}
 }`
 
 // Test that conversion works as expected
