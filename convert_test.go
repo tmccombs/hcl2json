@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hcl/hclsyntax"
+	hcl "github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"testing"
 )
 
@@ -29,6 +29,7 @@ locals {
 		"local.test1" = 89
 		"a.b.c[\"hi\"][3].*" = 3
 		loop = "This has a for loop: %{for x in local.arr}x,%{endfor}"
+		a.b.c = "True"
 	}
 }
 
@@ -100,6 +101,7 @@ const expectedJSON = `{
 			"other": {
 				"${local.test3}": 4,
 				"3": 1,
+				"a.b.c": "True",
 				"a.b.c[\"hi\"][3].*": 3,
 				"local.test1": 89,
 				"loop": "This has a for loop: %{for x in local.arr}x,%{endfor}",
