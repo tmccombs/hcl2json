@@ -6,6 +6,12 @@ If passed the `-pack` option, it converts to the JSON pack format used by [hclpa
 
 If no options are passed, it converts the provide native HCL file to an (almost) equivalent HCL JSON file. Note, however, that there are some corner cases where it may not be exactly equivalent, especially if the target application makes use of [static analysis](https://github.com/hashicorp/hcl2/blob/master/hcl/hclsyntax/spec.md#static-analysis).
 
+## Installation
+
+Prebuilt binaries are available on the [releases page](https://github.com/tmccombs/hcl2json/releases). There is also a docker image on [dockerhub](https://hub.docker.com/r/tmccombs/hcl2json).
+
+Alternatively you can build from source (see next section).
+
 ## Building
 
 Unfortunately, `go get` doesn't seem to work this package (see #8).
