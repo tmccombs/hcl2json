@@ -5,3 +5,17 @@ This is a tool to convert from [HCL](https://github.com/hashicorp/hcl2/blob/mast
 If passed the `-pack` option, it converts to the JSON pack format used by [hclpack]( https://godoc.org/github.com/hashicorp/hcl2/hclpack), which contains the original structure of the document. However, all it has for expressions is the source text, which isn't always very useful.
 
 If no options are passed, it converts the provide native HCL file to an (almost) equivalent HCL JSON file. Note, however, that there are some corner cases where it may not be exactly equivalent, especially if the target application makes use of [static analysis](https://github.com/hashicorp/hcl2/blob/master/hcl/hclsyntax/spec.md#static-analysis).
+
+## Building
+
+Unfortunately, `go get` doesn't seem to work this package (see #8).
+
+Therefore you will need to clone and build the repository:
+
+```
+$ git clone https://github.com/tmccombs/hcl2json
+$ cd hcl2json
+$ go build
+```
+
+This will build an `hcl2json` library in the directory.
