@@ -6,9 +6,30 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
 	ctyconvert "github.com/zclconf/go-cty/cty/convert"
+	"github.com/zclconf/go-cty/cty/function"
+	"github.com/zclconf/go-cty/cty/function/stdlib"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
+	"strconv"
 	"strings"
 )
+
+var specFuncs = map[string]function.Function{
+	"abs":        stdlib.AbsoluteFunc,
+	"coalesce":   stdlib.CoalesceFunc,
+	"concat":     stdlib.ConcatFunc,
+	"hasindex":   stdlib.HasIndexFunc,
+	"int":        stdlib.IntFunc,
+	"jsondecode": stdlib.JSONDecodeFunc,
+	"jsonencode": stdlib.JSONEncodeFunc,
+	"length":     stdlib.LengthFunc,
+	"lower":      stdlib.LowerFunc,
+	"max":        stdlib.MaxFunc,
+	"min":        stdlib.MinFunc,
+	"reverse":    stdlib.ReverseFunc,
+	"strlen":     stdlib.StrlenFunc,
+	"substr":     stdlib.SubstrFunc,
+	"upper":      stdlib.UpperFunc,
+}
 
 type jsonObj map[string]interface{}
 
@@ -62,7 +83,7 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 			out, ok = inner.(jsonObj)
 			if !ok {
 				// TODO: better diagnostics
-				return fmt.Errorf("Unable to conver Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
+				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
 			}
 		} else {
 			obj := make(jsonObj)
@@ -90,10 +111,15 @@ func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, e
 	switch value := expr.(type) {
 	case *hclsyntax.LiteralValueExpr:
 		return ctyjson.SimpleJSONValue{Value: value.Val}, nil
+	case *hclsyntax.UnaryOpExpr:
+		num := c.rangeSource(expr.Range())
+		return strconv.Atoi(num)
 	case *hclsyntax.TemplateExpr:
 		return c.convertTemplate(value)
 	case *hclsyntax.TemplateWrapExpr:
 		return c.convertExpression(value.Wrapped)
+	case *hclsyntax.FunctionCallExpr:
+		return c.convertFunctionCall(expr)
 	case *hclsyntax.TupleConsExpr:
 		var list []interface{}
 		for _, ex := range value.Exprs {
@@ -218,4 +244,15 @@ func (c *converter) convertTemplateFor(expr *hclsyntax.ForExpr) (string, error) 
 
 func (c *converter) wrapExpr(expr hclsyntax.Expression) string {
 	return "${" + c.rangeSource(expr.Range()) + "}"
+}
+
+func (c *converter) convertFunctionCall(expr hclsyntax.Expression) (interface{}, error) {
+	specCtx := &hcl.EvalContext{
+		Functions: specFuncs,
+	}
+	value, valueDiags := expr.Value(specCtx)
+	if valueDiags.HasErrors() {
+		return nil, fmt.Errorf(valueDiags.Error())
+	}
+	return value.AsString(), nil
 }
