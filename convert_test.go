@@ -18,7 +18,10 @@ locals {
 	temp2 = "${"hi"} there"
 		quoted = "\"quoted\""
 		squoted = "'quoted'"
-	}
+	x = -10
+	y = -x
+	z = -(1 + 4)
+}
 
 locals {
 	other = {
@@ -95,7 +98,10 @@ const expectedJSON = `{
 			"temp2": "hi there",
 			"test1": "hello",
 			"test2": 5,
-			"test3": "${1 + 2}"
+			"test3": "${1 + 2}",
+			"x": -10,
+			"y": "${-x}",
+			"z": "${-(1 + 4)}"
 		},
 		{
 			"other": {
