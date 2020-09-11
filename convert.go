@@ -25,7 +25,13 @@ type converter struct {
 }
 
 func (c *converter) rangeSource(r hcl.Range) string {
-	return string(c.bytes[r.Start.Byte:r.End.Byte])
+	// for some reason the range doesn't include the ending paren, so
+	// check if the next character is an ending paren, and include it if it is.
+	end := r.End.Byte
+	if c.bytes[end] == ')' {
+		end++
+	}
+	return string(c.bytes[r.Start.Byte:end])
 }
 
 func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
@@ -62,7 +68,7 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 			out, ok = inner.(jsonObj)
 			if !ok {
 				// TODO: better diagnostics
-				return fmt.Errorf("Unable to conver Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
+				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
 			}
 		} else {
 			obj := make(jsonObj)
