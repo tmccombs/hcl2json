@@ -1,22 +1,54 @@
-package main
+package convert
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
+
 	hcl "github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/zclconf/go-cty/cty"
 	ctyconvert "github.com/zclconf/go-cty/cty/convert"
 	ctyjson "github.com/zclconf/go-cty/cty/json"
-	"strings"
 )
+
+// Bytes takes the contents of an HCL file, as bytes, and converts
+// them into a JSON representation of the HCL file.
+func Bytes(bytes []byte, filename string) ([]byte, error) {
+	file, diags := hclsyntax.ParseConfig(bytes, filename, hcl.Pos{Line: 1, Column: 1})
+	if diags.HasErrors() {
+		return nil, fmt.Errorf("parse config: %v", diags.Errs())
+	}
+
+	hclBytes, err := File(file)
+	if err != nil {
+		return nil, fmt.Errorf("convert to HCL: %w", err)
+	}
+
+	return hclBytes, nil
+}
+
+// File takes an HCL file and converts it to its JSON representation.
+func File(file *hcl.File) ([]byte, error) {
+	convertedFile, err := convertFile(file)
+	if err != nil {
+		return nil, fmt.Errorf("convert file: %w", err)
+	}
+
+	fileBytes, err := json.MarshalIndent(convertedFile, "", "    ")
+	if err != nil {
+		return nil, fmt.Errorf("marshal json: %w", err)
+	}
+
+	return fileBytes, nil
+}
 
 type jsonObj map[string]interface{}
 
-// Convert an hcl File to a json serializable object
-// This assumes that the body is a hclsyntax.Body
 func convertFile(file *hcl.File) (jsonObj, error) {
 	c := converter{bytes: file.Bytes}
 	body := file.Body.(*hclsyntax.Body)
+
 	return c.convertBody(body)
 }
 

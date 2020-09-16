@@ -1,10 +1,11 @@
-package main
+package convert
 
 import (
 	"encoding/json"
+	"testing"
+
 	hcl "github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
-	"testing"
 )
 
 const input = `
