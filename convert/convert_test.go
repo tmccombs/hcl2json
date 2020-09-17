@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-const input = `
+const input1 = `
 locals {
 	test3 = 1 + 2
 	test1 = "hello"
@@ -70,7 +70,7 @@ variable "region" {
 }
 `
 
-const expectedJSON = `{
+const expectedJSON1 = `{
 	"data": {
 		"terraform_remote_state": {
 			"remote": {
@@ -131,15 +131,13 @@ const expectedJSON = `{
 	}
 }`
 
-// Test that conversion works as expected
-func TestConversion(t *testing.T) {
-	bytes := []byte(input)
+func compareTest(t *testing.T, inputStr string, expected string, options Options) {
+	bytes := []byte(inputStr)
 	conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Line: 1, Column: 1})
 	if diags.HasErrors() {
 		t.Errorf("Failed to parse config: %v", diags)
 	}
-	converted, err := convertFile(conf)
-
+	converted, err := convertFile(conf, options)
 	if err != nil {
 		t.Errorf("Unable to convert from hcl: %v", err)
 	}
@@ -149,8 +147,43 @@ func TestConversion(t *testing.T) {
 		t.Errorf("Failed to serialize to json: %v", err)
 	}
 	computedJSON := string(jb)
-
-	if computedJSON != expectedJSON {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expectedJSON, computedJSON)
+	if computedJSON != expected {
+		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, computedJSON)
 	}
+}
+
+// Test that conversion works as expected
+func TestConversion(t *testing.T) {
+	compareTest(t, input1, expectedJSON1, Options{})
+}
+
+func TestSimplify(t *testing.T) {
+	input := `locals {
+		a = split("-", "xyx-abc-def")
+		x = 1 + 2
+		y = pow(2,3)
+		t = "x=${4+abs(2-3)*parseint("02",16)}"
+		j = jsonencode({
+			a = "a"
+			b = 5
+		})
+		with_vars = x + 1
+	}`
+
+	expected := `{
+	"locals": {
+		"a": [
+			"xyx",
+			"abc",
+			"def"
+		],
+		"j": "{\"a\":\"a\",\"b\":5}",
+		"t": "x=6",
+		"with_vars": "${x + 1}",
+		"x": 3,
+		"y": 8
+	}
+}`
+
+	compareTest(t, input, expected, Options{Simplify: true})
 }

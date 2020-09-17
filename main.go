@@ -11,6 +11,10 @@ import (
 
 func main() {
 	logger := log.New(os.Stderr, "", 0)
+
+	var options convert.Options
+
+	flag.BoolVar(&options.Simplify, "simplify", false, "If true attempt to simply expressions which don't contain any variables or unknown functions")
 	flag.Parse()
 
 	var filename = flag.Arg(0)
@@ -25,7 +29,7 @@ func main() {
 		logger.Fatalf("Failed to read file: %s\n", err)
 	}
 
-	content, err := convert.Bytes(bytes, filename)
+	content, err := convert.Bytes(bytes, filename, options)
 	if err != nil {
 		logger.Fatalf("Failed to convert file: %v", err)
 	}

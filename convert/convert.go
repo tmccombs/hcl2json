@@ -12,15 +12,19 @@ import (
 	ctyjson "github.com/zclconf/go-cty/cty/json"
 )
 
+type Options struct {
+	Simplify bool
+}
+
 // Bytes takes the contents of an HCL file, as bytes, and converts
 // them into a JSON representation of the HCL file.
-func Bytes(bytes []byte, filename string) ([]byte, error) {
+func Bytes(bytes []byte, filename string, options Options) ([]byte, error) {
 	file, diags := hclsyntax.ParseConfig(bytes, filename, hcl.Pos{Line: 1, Column: 1})
 	if diags.HasErrors() {
 		return nil, fmt.Errorf("parse config: %v", diags.Errs())
 	}
 
-	hclBytes, err := File(file)
+	hclBytes, err := File(file, options)
 	if err != nil {
 		return nil, fmt.Errorf("convert to HCL: %w", err)
 	}
@@ -29,8 +33,8 @@ func Bytes(bytes []byte, filename string) ([]byte, error) {
 }
 
 // File takes an HCL file and converts it to its JSON representation.
-func File(file *hcl.File) ([]byte, error) {
-	convertedFile, err := convertFile(file)
+func File(file *hcl.File, options Options) ([]byte, error) {
+	convertedFile, err := convertFile(file, options)
 	if err != nil {
 		return nil, fmt.Errorf("convert file: %w", err)
 	}
@@ -45,8 +49,8 @@ func File(file *hcl.File) ([]byte, error) {
 
 type jsonObj map[string]interface{}
 
-func convertFile(file *hcl.File) (jsonObj, error) {
-	c := converter{bytes: file.Bytes}
+func convertFile(file *hcl.File, options Options) (jsonObj, error) {
+	c := converter{bytes: file.Bytes, options: options}
 	body := file.Body.(*hclsyntax.Body)
 
 	return c.convertBody(body)
@@ -54,6 +58,7 @@ func convertFile(file *hcl.File) (jsonObj, error) {
 
 type converter struct {
 	bytes []byte
+	options Options
 }
 
 func (c *converter) rangeSource(r hcl.Range) string {
@@ -124,6 +129,12 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 }
 
 func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, error) {
+	if c.options.Simplify {
+		value, err := expr.Value(&evalContext)
+		if err == nil {
+			return ctyjson.SimpleJSONValue{Value: value}, nil
+		}
+	}
 	// assume it is hcl syntax (because, um, it is)
 	switch value := expr.(type) {
 	case *hclsyntax.LiteralValueExpr:
