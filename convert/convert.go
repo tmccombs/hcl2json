@@ -39,12 +39,12 @@ func File(file *hcl.File, options Options) ([]byte, error) {
 		return nil, fmt.Errorf("convert file: %w", err)
 	}
 
-	fileBytes, err := json.MarshalIndent(convertedFile, "", "    ")
+	jsonBytes, err := json.Marshal(convertedFile)
 	if err != nil {
 		return nil, fmt.Errorf("marshal json: %w", err)
 	}
 
-	return fileBytes, nil
+	return jsonBytes, nil
 }
 
 type jsonObj map[string]interface{}
@@ -57,7 +57,7 @@ func convertFile(file *hcl.File, options Options) (jsonObj, error) {
 }
 
 type converter struct {
-	bytes []byte
+	bytes   []byte
 	options Options
 }
 
