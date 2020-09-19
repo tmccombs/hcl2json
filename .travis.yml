@@ -12,7 +12,7 @@ matrix:
 # - go run main.go
 
 before_deploy:
-  - export XCOMPILE='go build -o hcl2json_${TRAVIS_TAG}_${GOOS}_${GOARCH}${EXT} -ldflags="-X main.Version=${TRAVIS_TAG}" github.com/tmccombs/hcl2json'
+  - export XCOMPILE='go build -o hcl2json_${TRAVIS_TAG}_${GOOS}_${GOARCH}${EXT} -ldflags="-X main.Version=${TRAVIS_TAG#v}" github.com/tmccombs/hcl2json'
   - GOOS=linux   GOARCH=386            eval "$XCOMPILE"
   - GOOS=linux   GOARCH=amd64          eval "$XCOMPILE"
   - GOOS=linux   GOARCH=arm            eval "$XCOMPILE"
