@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"log"
@@ -18,21 +20,28 @@ func main() {
 	flag.Parse()
 
 	var filename = flag.Arg(0)
-	var bytes []byte
+	var fileBytes []byte
 	var err error
 	if filename == "" || filename == "-" {
-		bytes, err = ioutil.ReadAll(os.Stdin)
+		fileBytes, err = ioutil.ReadAll(os.Stdin)
 	} else {
-		bytes, err = ioutil.ReadFile(filename)
+		fileBytes, err = ioutil.ReadFile(filename)
 	}
 	if err != nil {
 		logger.Fatalf("Failed to read file: %s\n", err)
 	}
 
-	content, err := convert.Bytes(bytes, filename, options)
+	converted, err := convert.Bytes(fileBytes, filename, options)
 	if err != nil {
 		logger.Fatalf("Failed to convert file: %v", err)
 	}
 
-	os.Stdout.Write(content)
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, converted, "", "    "); err != nil {
+		logger.Fatalf("Failed to indent file: %v", err)
+	}
+
+	if _, err := indented.WriteTo(os.Stdout); err != nil {
+		logger.Fatalf("Failed to write to standard out: %v", err)
+	}
 }
