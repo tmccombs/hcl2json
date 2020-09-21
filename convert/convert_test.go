@@ -131,6 +131,24 @@ const expectedJSON1 = `{
 	}
 }`
 
+const inputb = `
+provider "aws" {
+    version             = "=2.46.0"
+	alias               = "one"
+}
+`
+
+const outputb = `{
+	"provider": {
+		"aws": [
+			{
+				"alias": "one",
+				"version": "=2.46.0"
+			}
+		]
+	}
+}`
+
 func compareTest(t *testing.T, inputStr string, expected string, options Options) {
 	bytes := []byte(inputStr)
 	conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Line: 1, Column: 1})
@@ -155,35 +173,5 @@ func compareTest(t *testing.T, inputStr string, expected string, options Options
 // Test that conversion works as expected
 func TestConversion(t *testing.T) {
 	compareTest(t, input1, expectedJSON1, Options{})
-}
-
-func TestSimplify(t *testing.T) {
-	input := `locals {
-		a = split("-", "xyx-abc-def")
-		x = 1 + 2
-		y = pow(2,3)
-		t = "x=${4+abs(2-3)*parseint("02",16)}"
-		j = jsonencode({
-			a = "a"
-			b = 5
-		})
-		with_vars = x + 1
-	}`
-
-	expected := `{
-	"locals": {
-		"a": [
-			"xyx",
-			"abc",
-			"def"
-		],
-		"j": "{\"a\":\"a\",\"b\":5}",
-		"t": "x=6",
-		"with_vars": "${x + 1}",
-		"x": 3,
-		"y": 8
-	}
-}`
-
-	compareTest(t, input, expected, Options{Simplify: true})
+	compareTest(t, inputb, outputb, Options{})
 }

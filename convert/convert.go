@@ -49,16 +49,60 @@ func File(file *hcl.File, options Options) ([]byte, error) {
 
 type jsonObj map[string]interface{}
 
-func convertFile(file *hcl.File, options Options) (jsonObj, error) {
-	c := converter{bytes: file.Bytes, options: options}
-	body := file.Body.(*hclsyntax.Body)
-
-	return c.convertBody(body)
-}
-
 type converter struct {
 	bytes   []byte
 	options Options
+}
+
+func convertFile(file *hcl.File, options Options) (jsonObj, error) {
+	body, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		return nil, fmt.Errorf("convert file body to body type")
+	}
+
+	c := converter{
+		bytes:   file.Bytes,
+		options: options,
+	}
+
+	out, err := c.convertBody(body)
+	if err != nil {
+		return nil, fmt.Errorf("convert body: %w", err)
+	}
+
+	return out, nil
+}
+
+func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
+	out := make(jsonObj)
+
+	// Blocks represent definitions in the body that immediately follow a brace.
+	// In the HCL file, some examples include:
+	//
+	// key { ... }
+	// variable "var" { ... }
+	for _, block := range body.Blocks {
+		if err := c.convertBlock(block, out); err != nil {
+			return nil, fmt.Errorf("convert block: %w", err)
+		}
+	}
+
+	// Attributes represent definitions in the body that are key value pairs.
+	// A pair can be defined using either a colon or an equals sign.
+	// In the HCL file, some examples include:
+	//
+	// "key": value
+	// "key": { ... }
+	// key = { ... }
+	var err error
+	for key, value := range body.Attributes {
+		out[key], err = c.convertExpression(value.Expr)
+		if err != nil {
+			return nil, fmt.Errorf("convert expression: %w", err)
+		}
+	}
+
+	return out, nil
 }
 
 func (c *converter) rangeSource(r hcl.Range) string {
@@ -71,50 +115,32 @@ func (c *converter) rangeSource(r hcl.Range) string {
 	return string(c.bytes[r.Start.Byte:end])
 }
 
-func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
-	var err error
-	out := make(jsonObj)
-	for key, value := range body.Attributes {
-		out[key], err = c.convertExpression(value.Expr)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for _, block := range body.Blocks {
-		err = c.convertBlock(block, out)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return out, nil
-}
-
 func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
-	var key string = block.Type
-
-	value, err := c.convertBody(block.Body)
-	if err != nil {
-		return err
-	}
+	// The block type is the name given to the block.
+	// e.g. data, variable, config, etc.
+	key := block.Type
 
 	for _, label := range block.Labels {
-		if inner, exists := out[key]; exists {
-			var ok bool
-			out, ok = inner.(jsonObj)
-			if !ok {
-				// TODO: better diagnostics
-				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
-			}
-		} else {
+
+		if _, exists := out[key]; !exists {
 			obj := make(jsonObj)
 			out[key] = obj
 			out = obj
+		} else {
+			var ok bool
+			out, ok = out[key].(jsonObj)
+			if !ok {
+				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
+			}
 		}
+
 		key = label
 	}
 
+	value, err := c.convertBody(block.Body)
+	if err != nil {
+		return fmt.Errorf("convert body: %w", err)
+	}
 	if current, exists := out[key]; exists {
 		if list, ok := current.([]interface{}); ok {
 			out[key] = append(list, value)
@@ -135,6 +161,7 @@ func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, e
 			return ctyjson.SimpleJSONValue{Value: value}, nil
 		}
 	}
+
 	// assume it is hcl syntax (because, um, it is)
 	switch value := expr.(type) {
 	case *hclsyntax.LiteralValueExpr:
