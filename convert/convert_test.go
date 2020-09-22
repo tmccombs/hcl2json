@@ -1,14 +1,97 @@
 package convert
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
-
-	hcl "github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
-const input1 = `
+func TestLabelsWithNestedBlock(t *testing.T) {
+	input := `
+block "label_one" "label_two" {
+	nested_block { }
+}`
+
+	expected := `{
+	"block": {
+		"label_one": {
+			"label_two": [
+				{
+					"nested_block": [
+						{}
+					]
+				}
+			]
+		}
+	}
+}`
+
+	convertedBytes, err := Bytes([]byte(input), "", Options{})
+	if err != nil {
+		t.Fatal("parse bytes:", err)
+	}
+
+	compareTest(t, convertedBytes, expected)
+}
+
+func TestSingleBlock(t *testing.T) {
+	input := `
+block "label_one" {
+	attribute = "value"
+}
+`
+
+	expected := `{
+	"block": {
+		"label_one": [
+			{
+				"attribute": "value"
+			}
+		]
+	}
+}`
+
+	convertedBytes, err := Bytes([]byte(input), "", Options{})
+	if err != nil {
+		t.Fatal("parse bytes:", err)
+	}
+
+	compareTest(t, convertedBytes, expected)
+}
+
+func TestMultipleBlocks(t *testing.T) {
+	input := `
+block "label_one" {
+	attribute = "value"
+}
+block "label_one" {
+	attribute = "value_two"
+}
+`
+
+	expected := `{
+	"block": {
+		"label_one": [
+			{
+				"attribute": "value"
+			},
+			{
+				"attribute": "value_two"
+			}
+		]
+	}
+}`
+
+	convertedBytes, err := Bytes([]byte(input), "", Options{})
+	if err != nil {
+		t.Fatal("parse bytes:", err)
+	}
+
+	compareTest(t, convertedBytes, expected)
+}
+
+func TestConversion(t *testing.T) {
+	const input = `
 locals {
 	test3 = 1 + 2
 	test1 = "hello"
@@ -70,18 +153,20 @@ variable "region" {
 }
 `
 
-const expectedJSON1 = `{
+	const expected = `{
 	"data": {
 		"terraform_remote_state": {
-			"remote": {
-				"backend": "s3",
-				"config": {
-					"bucket": "mybucket",
-					"key": "mykey",
-					"profile": "${var.profile}",
-					"region": "${var.region}"
+			"remote": [
+				{
+					"backend": "s3",
+					"config": {
+						"bucket": "mybucket",
+						"key": "mykey",
+						"profile": "${var.profile}",
+						"region": "${var.region}"
+					}
 				}
-			}
+			]
 		}
 	},
 	"locals": [
@@ -124,54 +209,71 @@ const expectedJSON1 = `{
 		}
 	],
 	"variable": {
-		"profile": {},
-		"region": {
-			"default": "us-east-1"
-		}
-	}
-}`
-
-const inputb = `
-provider "aws" {
-    version             = "=2.46.0"
-	alias               = "one"
-}
-`
-
-const outputb = `{
-	"provider": {
-		"aws": [
+		"profile": [
+			{}
+		],
+		"region": [
 			{
-				"alias": "one",
-				"version": "=2.46.0"
+				"default": "us-east-1"
 			}
 		]
 	}
 }`
 
-func compareTest(t *testing.T, inputStr string, expected string, options Options) {
-	bytes := []byte(inputStr)
-	conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Line: 1, Column: 1})
-	if diags.HasErrors() {
-		t.Errorf("Failed to parse config: %v", diags)
-	}
-	converted, err := convertFile(conf, options)
+	convertedBytes, err := Bytes([]byte(input), "", Options{})
 	if err != nil {
-		t.Errorf("Unable to convert from hcl: %v", err)
+		t.Fatal("parse bytes:", err)
 	}
 
-	jb, err := json.MarshalIndent(converted, "", "\t")
-	if err != nil {
-		t.Errorf("Failed to serialize to json: %v", err)
-	}
-	computedJSON := string(jb)
-	if computedJSON != expected {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, computedJSON)
-	}
+	compareTest(t, convertedBytes, expected)
 }
 
-// Test that conversion works as expected
-func TestConversion(t *testing.T) {
-	compareTest(t, input1, expectedJSON1, Options{})
-	compareTest(t, inputb, outputb, Options{})
+func TestSimplify(t *testing.T) {
+	input := `locals {
+		a = split("-", "xyx-abc-def")
+		x = 1 + 2
+		y = pow(2,3)
+		t = "x=${4+abs(2-3)*parseint("02",16)}"
+		j = jsonencode({
+			a = "a"
+			b = 5
+		})
+		with_vars = x + 1
+	}`
+
+	expected := `{
+	"locals": [
+		{
+			"a": [
+				"xyx",
+				"abc",
+				"def"
+			],
+			"j": "{\"a\":\"a\",\"b\":5}",
+			"t": "x=6",
+			"with_vars": "${x + 1}",
+			"x": 3,
+			"y": 8
+		}
+	]
+}`
+
+	convertedBytes, err := Bytes([]byte(input), "", Options{Simplify: true})
+	if err != nil {
+		t.Fatal("parse bytes:", err)
+	}
+
+	compareTest(t, convertedBytes, expected)
+}
+
+func compareTest(t *testing.T, input []byte, expected string) {
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, input, "", "\t"); err != nil {
+		t.Fatal("indent:", err)
+	}
+
+	actual := indented.String()
+	if actual != expected {
+		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, actual)
+	}
 }

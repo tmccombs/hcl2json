@@ -76,24 +76,12 @@ func convertFile(file *hcl.File, options Options) (jsonObj, error) {
 func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
 	out := make(jsonObj)
 
-	// Blocks represent definitions in the body that immediately follow a brace.
-	// In the HCL file, some examples include:
-	//
-	// key { ... }
-	// variable "var" { ... }
 	for _, block := range body.Blocks {
 		if err := c.convertBlock(block, out); err != nil {
 			return nil, fmt.Errorf("convert block: %w", err)
 		}
 	}
 
-	// Attributes represent definitions in the body that are key value pairs.
-	// A pair can be defined using either a colon or an equals sign.
-	// In the HCL file, some examples include:
-	//
-	// "key": value
-	// "key": { ... }
-	// key = { ... }
 	var err error
 	for key, value := range body.Attributes {
 		out[key], err = c.convertExpression(value.Expr)
@@ -116,22 +104,31 @@ func (c *converter) rangeSource(r hcl.Range) string {
 }
 
 func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
-	// The block type is the name given to the block.
-	// e.g. data, variable, config, etc.
 	key := block.Type
-
 	for _, label := range block.Labels {
 
-		if _, exists := out[key]; !exists {
-			obj := make(jsonObj)
-			out[key] = obj
-			out = obj
-		} else {
+		// Labels represented in HCL are defined as quoted strings after the name of the block:
+		// block "label_one" "label_two"
+		//
+		// Labels represtend in JSON are nested one after the other:
+		// "label_one": {
+		//   "label_two": {}
+		// }
+		//
+		// To create the JSON representation, check to see if the label exists in the current output:
+		//
+		// When the label exists, move onto the next label reference.
+		// When a label does not exist, create the label in the output and set that as the next label reference
+		// in order to append (potential) labels to it.
+		if _, exists := out[key]; exists {
 			var ok bool
 			out, ok = out[key].(jsonObj)
 			if !ok {
 				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
 			}
+		} else {
+			out[key] = make(jsonObj)
+			out = out[key].(jsonObj)
 		}
 
 		key = label
@@ -141,14 +138,16 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 	if err != nil {
 		return fmt.Errorf("convert body: %w", err)
 	}
+
+	// Multiple blocks can exist with the same name, at the same
+	// level in the JSON document (e.g. locals).
+	//
+	// For consistency, always wrap the value in a collection.
+	// When multiple values are at the same key
 	if current, exists := out[key]; exists {
-		if list, ok := current.([]interface{}); ok {
-			out[key] = append(list, value)
-		} else {
-			out[key] = []interface{}{current, value}
-		}
+		out[key] = append(current.([]interface{}), value)
 	} else {
-		out[key] = value
+		out[key] = []interface{}{value}
 	}
 
 	return nil
