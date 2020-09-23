@@ -49,16 +49,48 @@ func File(file *hcl.File, options Options) ([]byte, error) {
 
 type jsonObj map[string]interface{}
 
-func convertFile(file *hcl.File, options Options) (jsonObj, error) {
-	c := converter{bytes: file.Bytes, options: options}
-	body := file.Body.(*hclsyntax.Body)
-
-	return c.convertBody(body)
-}
-
 type converter struct {
 	bytes   []byte
 	options Options
+}
+
+func convertFile(file *hcl.File, options Options) (jsonObj, error) {
+	body, ok := file.Body.(*hclsyntax.Body)
+	if !ok {
+		return nil, fmt.Errorf("convert file body to body type")
+	}
+
+	c := converter{
+		bytes:   file.Bytes,
+		options: options,
+	}
+
+	out, err := c.convertBody(body)
+	if err != nil {
+		return nil, fmt.Errorf("convert body: %w", err)
+	}
+
+	return out, nil
+}
+
+func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
+	out := make(jsonObj)
+
+	for _, block := range body.Blocks {
+		if err := c.convertBlock(block, out); err != nil {
+			return nil, fmt.Errorf("convert block: %w", err)
+		}
+	}
+
+	var err error
+	for key, value := range body.Attributes {
+		out[key], err = c.convertExpression(value.Expr)
+		if err != nil {
+			return nil, fmt.Errorf("convert expression: %w", err)
+		}
+	}
+
+	return out, nil
 }
 
 func (c *converter) rangeSource(r hcl.Range) string {
@@ -71,58 +103,51 @@ func (c *converter) rangeSource(r hcl.Range) string {
 	return string(c.bytes[r.Start.Byte:end])
 }
 
-func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
-	var err error
-	out := make(jsonObj)
-	for key, value := range body.Attributes {
-		out[key], err = c.convertExpression(value.Expr)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for _, block := range body.Blocks {
-		err = c.convertBlock(block, out)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return out, nil
-}
-
 func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
-	var key string = block.Type
-
-	value, err := c.convertBody(block.Body)
-	if err != nil {
-		return err
-	}
-
+	key := block.Type
 	for _, label := range block.Labels {
-		if inner, exists := out[key]; exists {
+
+		// Labels represented in HCL are defined as quoted strings after the name of the block:
+		// block "label_one" "label_two"
+		//
+		// Labels represtend in JSON are nested one after the other:
+		// "label_one": {
+		//   "label_two": {}
+		// }
+		//
+		// To create the JSON representation, check to see if the label exists in the current output:
+		//
+		// When the label exists, move onto the next label reference.
+		// When a label does not exist, create the label in the output and set that as the next label reference
+		// in order to append (potential) labels to it.
+		if _, exists := out[key]; exists {
 			var ok bool
-			out, ok = inner.(jsonObj)
+			out, ok = out[key].(jsonObj)
 			if !ok {
-				// TODO: better diagnostics
 				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
 			}
 		} else {
-			obj := make(jsonObj)
-			out[key] = obj
-			out = obj
+			out[key] = make(jsonObj)
+			out = out[key].(jsonObj)
 		}
+
 		key = label
 	}
 
+	value, err := c.convertBody(block.Body)
+	if err != nil {
+		return fmt.Errorf("convert body: %w", err)
+	}
+
+	// Multiple blocks can exist with the same name, at the same
+	// level in the JSON document (e.g. locals).
+	//
+	// For consistency, always wrap the value in a collection.
+	// When multiple values are at the same key
 	if current, exists := out[key]; exists {
-		if list, ok := current.([]interface{}); ok {
-			out[key] = append(list, value)
-		} else {
-			out[key] = []interface{}{current, value}
-		}
+		out[key] = append(current.([]interface{}), value)
 	} else {
-		out[key] = value
+		out[key] = []interface{}{value}
 	}
 
 	return nil
@@ -135,6 +160,7 @@ func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, e
 			return ctyjson.SimpleJSONValue{Value: value}, nil
 		}
 	}
+
 	// assume it is hcl syntax (because, um, it is)
 	switch value := expr.(type) {
 	case *hclsyntax.LiteralValueExpr:
