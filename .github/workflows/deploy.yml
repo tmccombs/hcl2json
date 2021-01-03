@@ -3,6 +3,8 @@ name: Deploy
 on:
   release:
     types: [published]
+  push:
+    branches: [test]
 
 jobs:
   deploy:
@@ -25,6 +27,7 @@ jobs:
       GOOS: ${{ matrix.os }}
       GOARCH: ${{ matrix.arch }}
     steps:
+      - run: "echo '${{ toJSON(github.event) }}'"
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
@@ -37,7 +40,6 @@ jobs:
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >>  $GITHUB_ENV
       - name: Build
         run: 'go build -ldflags="-X main.Version=${{ env.VERSION }}"'
-      - run: echo ${{ github.event }}
       - name: Upload
         uses: actions/upload-release-asset@v1
         env:
