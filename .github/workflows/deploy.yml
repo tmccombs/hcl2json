@@ -11,9 +11,12 @@ jobs:
     strategy:
       matrix:
         os:
-          - linux
-          - darwin
-          - windows
+          - name: linux
+            ext: ''
+          - name: darwin
+            ext: ''
+          - name: windows
+            ext: '.exe'
         arch:
           - "386"
           - amd64
@@ -22,7 +25,7 @@ jobs:
             arch: "386"
       fail-fast: false
     env:
-      GOOS: ${{ matrix.os }}
+      GOOS: ${{ matrix.os.name }}
       GOARCH: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v2
@@ -30,11 +33,7 @@ jobs:
         with:
           go-version: 1.15
       - name: Update environment
-        run: |
-          if [[ GOOS = windows ]]; then
-            echo "EXT=.exe" >> $GITHUB_ENV
-          fi
-          echo "VERSION=${GITHUB_REF#refs/tags/v}" >>  $GITHUB_ENV
+        run: | echo "VERSION=${GITHUB_REF#refs/tags/v}" >>  $GITHUB_ENV
       - name: Build
         run: 'go build -ldflags="-X main.Version=${{ env.VERSION }}"'
       - name: Upload
@@ -43,6 +42,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: hcl2json
-          asset_name: hcl2json_${{ matrix.os }}_${{ matrix.arch }}${{ env.EXT }}
+          asset_path: hcl2json${{ matrix.os.ext }}
+          asset_name: hcl2json_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.os.ext }}
           asset_content_type: application/octet-stream
