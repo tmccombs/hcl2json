@@ -40,9 +40,9 @@ jobs:
       - name: Upload
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHBU_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: hcl2json
           asset_name: hcl2json_${{ matrix.os }}_${{ matrix.arch }}${{ env.EXT }}
           asset_content_type: application/octet-stream
