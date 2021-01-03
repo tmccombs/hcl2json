@@ -17,6 +17,10 @@ jobs:
         arch:
           - "386"
           - amd64
+        exclude:
+          - os: darwin
+            arch: "386"
+      fail-fast: false
     env:
       GOOS: ${{ matrix.os }}
       GOARCH: ${{ matrix.arch }}
