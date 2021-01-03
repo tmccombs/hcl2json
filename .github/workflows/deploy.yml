@@ -34,7 +34,7 @@ jobs:
       - name: Build
         run: go build -ldflags="-X main.Version=${{ env.VERSION }}
       - name: Upload
-        use: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHBU_TOKEN }}
         with:
