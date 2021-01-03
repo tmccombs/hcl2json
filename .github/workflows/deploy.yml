@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - linux
+          - darwin
+          - windows
+        arch:
+          - "386"
+          - amd64
+    env:
+      GOOS: ${{ matrix.os }}
+      GOARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+      - name: Update environment
+        run: |
+          if [[ GOOS = windows ]]; then
+            echo "EXT=.exe" >> $GITHUB_ENV
+          fi
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >>  $GITHUB_ENV
+      - name: Build
+        run: go build -ldflags="-X main.Version=${{ env.VERSION }}
+      - name: Upload
+        use: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHBU_TOKEN }}
+        with:
+          upload_url: ${{ github.event.upload_url }}
+          asset_path: hcl2json
+          asset_name: hcl2json_${{ matrix.os }}_${{ matrix.arch }}${{ env.EXT }}
+          asset_content_type: application/octet-stream
