@@ -37,6 +37,7 @@ jobs:
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >>  $GITHUB_ENV
       - name: Build
         run: 'go build -ldflags="-X main.Version=${{ env.VERSION }}"'
+      - run: echo ${{ github.event }}
       - name: Upload
         uses: actions/upload-release-asset@v1
         env:
