@@ -34,7 +34,7 @@ func Bytes(bytes []byte, filename string, options Options) ([]byte, error) {
 
 // File takes an HCL file and converts it to its JSON representation.
 func File(file *hcl.File, options Options) ([]byte, error) {
-	convertedFile, err := convertFile(file, options)
+	convertedFile, err := ConvertFile(file, options)
 	if err != nil {
 		return nil, fmt.Errorf("convert file: %w", err)
 	}
@@ -54,7 +54,7 @@ type converter struct {
 	options Options
 }
 
-func convertFile(file *hcl.File, options Options) (jsonObj, error) {
+func ConvertFile(file *hcl.File, options Options) (jsonObj, error) {
 	body, ok := file.Body.(*hclsyntax.Body)
 	if !ok {
 		return nil, fmt.Errorf("convert file body to body type")
