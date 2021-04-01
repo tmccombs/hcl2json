@@ -97,7 +97,7 @@ func (c *converter) rangeSource(r hcl.Range) string {
 	// for some reason the range doesn't include the ending paren, so
 	// check if the next character is an ending paren, and include it if it is.
 	end := r.End.Byte
-	if c.bytes[end] == ')' {
+	if end < len(c.bytes) && c.bytes[end] == ')' {
 		end++
 	}
 	return string(c.bytes[r.Start.Byte:end])

@@ -266,6 +266,23 @@ func TestSimplify(t *testing.T) {
 	compareTest(t, convertedBytes, expected)
 }
 
+func TestEndOfFileExpr(t *testing.T) {
+	input := `inputs = merge(
+		{},
+		foo().inputs
+	)`
+	expected := `{
+	"inputs": "${merge(\n\t\t{},\n\t\tfoo().inputs\n\t)}"
+}`
+
+	convertedBytes, err := Bytes([]byte(input), "", Options{})
+	if err != nil {
+		t.Fatal("parse bytes:", err)
+	}
+
+	compareTest(t, convertedBytes, expected)
+}
+
 func compareTest(t *testing.T, input []byte, expected string) {
 	var indented bytes.Buffer
 	if err := json.Indent(&indented, input, "", "\t"); err != nil {
