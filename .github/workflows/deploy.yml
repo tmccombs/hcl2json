@@ -43,5 +43,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: hcl2json${{ matrix.os.ext }}
-          asset_name: hcl2json_${{ matrix.os }}_${{ matrix.arch }}${{ matrix.os.ext }}
+          asset_name: hcl2json_${{ matrix.os.name }}_${{ matrix.arch }}${{ matrix.os.ext }}
           asset_content_type: application/octet-stream
