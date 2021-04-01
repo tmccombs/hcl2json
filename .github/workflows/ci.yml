@@ -15,6 +15,7 @@ jobs:
         go:
           - "1.14"
           - "1.15"
+          - "1.16"
     steps:
       - name: Setup
         uses: actions/setup-go@v2
