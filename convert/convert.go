@@ -47,7 +47,7 @@ func File(file *hcl.File, options Options) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-type jsonObj map[string]interface{}
+type jsonObj = map[string]interface{}
 
 type converter struct {
 	bytes   []byte
