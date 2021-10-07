@@ -8,6 +8,15 @@ If no options are passed, it converts the native HCL file to an (almost) equival
 
 ## Installation
 
+### Mac OS
+
+Install with [Homebrew](https://formulae.brew.sh/formula/hcl2json):
+```shell
+brew install hcl2json
+```
+
+### Others
+
 Prebuilt binaries are available on the [releases page](https://github.com/tmccombs/hcl2json/releases). There is also a docker image on [dockerhub](https://hub.docker.com/r/tmccombs/hcl2json).
 
 Alternatively you can build from source (see next section).
