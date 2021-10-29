@@ -1,10 +1,23 @@
 # hcl2json
 
-This is a tool to convert from [HCL](https://github.com/hashicorp/hcl2/blob/master/hcl/hclsyntax/spec.md) to json, to make it easier for non-go applications and scripts to process HCL inputs (such as terraform config).
+This is a tool to convert from [HCL](https://github.com/hashicorp/hcl2/blob/master/hcl/hclsyntax/spec.md) to json, to make it
+easier for non-go applications and scripts to process HCL inputs (such as terraform config).
 
-If passed the `-pack` option, it converts to the JSON pack format used by [hclpack](https://godoc.org/github.com/hashicorp/hcl2/hclpack), which contains the original structure of the document. However, all it has for expressions is the source text, which isn't always very useful.
+If passed the `-pack` option, it converts to the JSON pack format used by
+[hclpack](https://godoc.org/github.com/hashicorp/hcl2/hclpack), which contains the original structure of the document. However,
+all it has for expressions is the source text, which isn't always very useful.
 
-If no options are passed, it converts the native HCL file to an (almost) equivalent HCL JSON file. Note, however, that there are some corner cases where it may not be exactly equivalent, especially if the target application makes use of [static analysis](https://github.com/hashicorp/hcl2/blob/master/hcl/hclsyntax/spec.md#static-analysis).
+If no options are passed, it converts the native HCL file to an (almost) equivalent HCL JSON file. Note, however, that there are
+some corner cases where it may not be exactly equivalent, especially if the target application makes use of [static
+analysis](https://github.com/hashicorp/hcl2/blob/master/hcl/hclsyntax/spec.md#static-analysis).
+
+## Alternatives
+
+At the time this project created, there weren't really any other object.  However, the HCL project itself now includes an
+[`hcldec`](https://github.com/hashicorp/hcl/tree/main/cmd/hcldec) command that can convert hcl to json if you give it a
+specification. One advantage of hcl2json is it doesn't require a specification, so for use cases where the heuristics are correct
+it may be easier to use. However, if you have cases hit the limitations of conversion listed above, `hcldec` is probably a
+better fit.
 
 ## Installation
 
