@@ -145,7 +145,13 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 	// For consistency, always wrap the value in a collection.
 	// When multiple values are at the same key
 	if current, exists := out[key]; exists {
-		out[key] = append(current.([]interface{}), value)
+		switch currentTyped := current.(type) {
+		case []interface{}:
+			currentTyped = append(currentTyped, value)
+			out[key] = currentTyped
+		default:
+			return fmt.Errorf("invalid HCL detected for %q block, cannot have blocks with and without labels", key)
+		}
 	} else {
 		out[key] = []interface{}{value}
 	}

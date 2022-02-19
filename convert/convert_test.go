@@ -3,6 +3,7 @@ package convert
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -281,6 +282,27 @@ func TestEndOfFileExpr(t *testing.T) {
 	}
 
 	compareTest(t, convertedBytes, expected)
+}
+
+func TestBlocksWithAndWithoutLabels(t *testing.T) {
+	input := `
+	foo "baz" {
+		key = 7
+		foo = "bar"
+	}
+
+	foo {
+		key = 7
+	}`
+
+	_, err := Bytes([]byte(input), "", Options{})
+	if err == nil {
+		t.Fatal("invalid HCL should have returned an error:", err)
+	}
+
+	if !strings.Contains(err.Error(), `invalid HCL detected for "foo" block, cannot have blocks with and without labels`) {
+		t.Fatalf("given error %q did not match expected error", err.Error())
+	}
 }
 
 func compareTest(t *testing.T, input []byte, expected string) {
