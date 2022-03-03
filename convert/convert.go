@@ -242,6 +242,11 @@ func (c *converter) convertTemplate(t *hclsyntax.TemplateExpr) (string, error) {
 func (c *converter) convertStringPart(expr hclsyntax.Expression) (string, error) {
 	switch v := expr.(type) {
 	case *hclsyntax.LiteralValueExpr:
+		// If the key is a bare "null", then we end up with null here,
+		// in this case we should just return the string "null"
+		if v.Val.IsNull() {
+			return "null", nil
+		}
 		s, err := ctyconvert.Convert(v.Val, cty.String)
 		if err != nil {
 			return "", err
