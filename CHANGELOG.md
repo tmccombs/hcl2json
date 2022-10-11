@@ -1,3 +1,7 @@
+# 0.3.5
+- Update dependencies
+- Add automated build for docker image
+
 # 0.3.4
 - Update dependencies
 - Fix panic when objects contain a key of "null"
