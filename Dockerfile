@@ -3,11 +3,11 @@ WORKDIR /go/src/app
 COPY go.sum .
 COPY go.mod .
 COPY main.go .
-COPY convert_test.go .
-COPY convert.go .
+COPY convert/ ./convert/
 WORKDIR /go/src/app
+ENV GOPATH= CGO_ENABLED=0
 RUN go get .
-RUN CGO_ENABLED=0 go build -a -ldflags '-s' -o /hcl2json .
+RUN go build -a -ldflags '-s' -o /hcl2json .
 
 ##################
 FROM scratch
