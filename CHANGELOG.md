@@ -1,6 +1,7 @@
 # 0.3.5
 - Update dependencies
 - Add automated build for docker image
+- Increase minimum go version to 1.18
 
 # 0.3.4
 - Update dependencies
