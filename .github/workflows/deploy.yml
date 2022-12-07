@@ -20,6 +20,7 @@ jobs:
         arch:
           - "386"
           - amd64
+          - arm64
         include:
           - os:
               name: darwin
@@ -30,6 +31,10 @@ jobs:
               name: darwin
               ext: ''
             arch: "386"
+          - os:
+              name: windows
+              ext: '.exe'
+            arch: arm64
       fail-fast: false
     env:
       GOOS: ${{ matrix.os.name }}
