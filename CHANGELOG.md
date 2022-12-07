@@ -1,3 +1,7 @@
+# 0.3.6
+- Update dependencies
+- Add linux/arm64 to releases page
+
 # 0.3.5
 - Update dependencies
 - Add automated build for docker image
