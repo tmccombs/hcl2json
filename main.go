@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -19,19 +19,44 @@ func main() {
 	flag.BoolVar(&options.Simplify, "simplify", false, "If true attempt to simply expressions which don't contain any variables or unknown functions")
 	flag.Parse()
 
-	var filename = flag.Arg(0)
-	var fileBytes []byte
-	var err error
-	if filename == "" || filename == "-" {
-		fileBytes, err = ioutil.ReadAll(os.Stdin)
-	} else {
-		fileBytes, err = ioutil.ReadFile(filename)
-	}
-	if err != nil {
-		logger.Fatalf("Failed to read file: %s\n", err)
+	buffer := bytes.NewBuffer([]byte{})
+	files := flag.Args()
+	var inputName string
+
+	switch len(files) {
+	case 0:
+		files = append(files, "-")
+		inputName = "STDIN"
+	case 1:
+		inputName = files[0]
+		if inputName == "-" {
+			inputName = "STDIN"
+		}
+	default:
+		inputName = "COMPOSITE"
 	}
 
-	converted, err := convert.Bytes(fileBytes, filename, options)
+	for _, filename := range flag.Args() {
+		var stream io.Reader
+		if filename == "-" {
+			stream = os.Stdin
+			filename = "STDIN" // for better error message
+		} else {
+			file, err := os.Open(filename)
+			if err != nil {
+				logger.Fatalf("Failed to open %s: %s\n", filename, err)
+			}
+			defer file.Close()
+			stream = file
+		}
+		_, err := buffer.ReadFrom(stream)
+		if err != nil {
+			logger.Fatalf("Failed to read from %s: %s\n", filename, err)
+		}
+		buffer.WriteByte('\n') // just in case it doesn't have an ending newline
+	}
+
+	converted, err := convert.Bytes(buffer.Bytes(), inputName, options)
 	if err != nil {
 		logger.Fatalf("Failed to convert file: %v", err)
 	}
