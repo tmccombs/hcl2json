@@ -1,3 +1,7 @@
+# 0.4.0
+- Update dependencies
+- Add support for passing multiple files to hcl2json
+
 # 0.3.6
 - Update dependencies
 - Add linux/arm64 to releases page
