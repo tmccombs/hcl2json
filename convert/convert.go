@@ -65,7 +65,7 @@ func ConvertFile(file *hcl.File, options Options) (jsonObj, error) {
 		options: options,
 	}
 
-	out, err := c.convertBody(body)
+	out, err := c.ConvertBody(body)
 	if err != nil {
 		return nil, fmt.Errorf("convert body: %w", err)
 	}
@@ -73,7 +73,7 @@ func ConvertFile(file *hcl.File, options Options) (jsonObj, error) {
 	return out, nil
 }
 
-func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
+func (c *converter) ConvertBody(body *hclsyntax.Body) (jsonObj, error) {
 	out := make(jsonObj)
 
 	for _, block := range body.Blocks {
@@ -84,7 +84,7 @@ func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
 
 	var err error
 	for key, value := range body.Attributes {
-		out[key], err = c.convertExpression(value.Expr)
+		out[key], err = c.ConvertExpression(value.Expr)
 		if err != nil {
 			return nil, fmt.Errorf("convert expression: %w", err)
 		}
@@ -134,7 +134,7 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 		key = label
 	}
 
-	value, err := c.convertBody(block.Body)
+	value, err := c.ConvertBody(block.Body)
 	if err != nil {
 		return fmt.Errorf("convert body: %w", err)
 	}
@@ -159,7 +159,7 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 	return nil
 }
 
-func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, error) {
+func (c *converter) ConvertExpression(expr hclsyntax.Expression) (interface{}, error) {
 	if c.options.Simplify {
 		value, err := expr.Value(&evalContext)
 		if err == nil {
@@ -176,11 +176,11 @@ func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, e
 	case *hclsyntax.TemplateExpr:
 		return c.convertTemplate(value)
 	case *hclsyntax.TemplateWrapExpr:
-		return c.convertExpression(value.Wrapped)
+		return c.ConvertExpression(value.Wrapped)
 	case *hclsyntax.TupleConsExpr:
 		list := make([]interface{}, 0)
 		for _, ex := range value.Exprs {
-			elem, err := c.convertExpression(ex)
+			elem, err := c.ConvertExpression(ex)
 			if err != nil {
 				return nil, err
 			}
@@ -194,7 +194,7 @@ func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, e
 			if err != nil {
 				return nil, err
 			}
-			m[key], err = c.convertExpression(item.ValueExpr)
+			m[key], err = c.ConvertExpression(item.ValueExpr)
 			if err != nil {
 				return nil, err
 			}
