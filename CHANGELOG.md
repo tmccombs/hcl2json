@@ -1,3 +1,8 @@
+# Upcoming
+
+- Make a few functions public in library
+- Fix bug where stdin wasn't used if no files are passed as arguments
+
 # 0.4.0
 - Update dependencies
 - Add support for passing multiple files to hcl2json

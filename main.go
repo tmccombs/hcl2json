@@ -36,7 +36,7 @@ func main() {
 		inputName = "COMPOSITE"
 	}
 
-	for _, filename := range flag.Args() {
+	for _, filename := range files {
 		var stream io.Reader
 		if filename == "-" {
 			stream = os.Stdin
