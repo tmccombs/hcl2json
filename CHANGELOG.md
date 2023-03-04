@@ -1,4 +1,4 @@
-# Upcoming
+# 0.5.0
 
 - Make a few functions public in library
 - Fix bug where stdin wasn't used if no files are passed as arguments
