@@ -201,6 +201,13 @@ func (c *converter) ConvertExpression(expr hclsyntax.Expression) (interface{}, e
 		}
 		return m, nil
 	default:
+		val := c.rangeSource(expr.Range())
+		types := []string{"string", "number", "bool", "list", "set", "map", "object", "tuple"}
+		for _, t := range types {
+			if res := strings.HasPrefix(val, t); res {
+				return val, nil
+			}
+		}
 		return c.wrapExpr(expr), nil
 	}
 }
