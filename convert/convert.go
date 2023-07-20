@@ -226,7 +226,7 @@ func (c *converter) convertTemplate(t *hclsyntax.TemplateExpr) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return v.AsString(), nil
+		return escapeLiteralString(v.AsString()), nil
 	}
 	var builder strings.Builder
 	for _, part := range t.Parts {
@@ -251,7 +251,7 @@ func (c *converter) convertStringPart(expr hclsyntax.Expression) (string, error)
 		if err != nil {
 			return "", err
 		}
-		return s.AsString(), nil
+		return escapeLiteralString(s.AsString()), nil
 	case *hclsyntax.TemplateExpr:
 		return c.convertTemplate(v)
 	case *hclsyntax.TemplateWrapExpr:
@@ -320,4 +320,10 @@ func (c *converter) convertTemplateFor(expr *hclsyntax.ForExpr) (string, error) 
 
 func (c *converter) wrapExpr(expr hclsyntax.Expression) string {
 	return "${" + c.rangeSource(expr.Range()) + "}"
+}
+
+// escapes ${ in literal strings with $${ so they don't become interpolation sequences
+// https://developer.hashicorp.com/terraform/language/expressions/strings#escape-sequences-1
+func escapeLiteralString(lit string) string {
+	return strings.ReplaceAll(lit, "${", "$${")
 }
