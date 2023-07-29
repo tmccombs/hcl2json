@@ -28,6 +28,11 @@ Install with [Homebrew](https://formulae.brew.sh/formula/hcl2json):
 brew install hcl2json
 ```
 
+`hcl2json` can also be installed via [MacPorts](https://ports.macports.org/port/hcl2json/):
+```shell
+sudo port install hcl2json
+```
+
 ### Others
 
 Prebuilt binaries are available on the [releases page](https://github.com/tmccombs/hcl2json/releases). There is also a docker image on [dockerhub](https://hub.docker.com/r/tmccombs/hcl2json).
