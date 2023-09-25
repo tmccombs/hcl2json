@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hcl2json
+  annotations:
+    github.com/project-slug: snyk/hcl2json
+    github.com/team-slug: snyk/cloud-dev-ex
+spec:
+  type: external-tooling
+  lifecycle: "-"
+  owner: cloud-dev-ex
