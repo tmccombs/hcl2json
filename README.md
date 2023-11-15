@@ -19,6 +19,23 @@ specification. One advantage of hcl2json is it doesn't require a specification, 
 it may be easier to use. However, if you have cases hit the limitations of conversion listed above, `hcldec` is probably a
 better fit.
 
+## Usage
+
+```sh
+# convert a file from hcl to json
+$ hcl2json some-file.hcl > out.json
+# reading from stdin also works
+$ hcl2json < infile.hcl > out.json
+# simplify any expressions that don't use variables or unknown functions
+$ hcl2json -simplify infile.hcl > out.json
+```
+
+If you use the docker image, you can invoke with
+
+```sh
+$ docker run -it --rm -v $PWD:/tmp tmmcombs/hcl2json /tmp/infile.hcl
+```
+
 ## Installation
 
 ### Mac OS
