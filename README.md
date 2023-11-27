@@ -33,7 +33,7 @@ $ hcl2json -simplify infile.hcl > out.json
 If you use the docker image, you can invoke with
 
 ```sh
-$ docker run -it --rm -v $PWD:/tmp tmmcombs/hcl2json /tmp/infile.hcl
+$ docker run -it --rm -v $PWD:/tmp tmccombs/hcl2json /tmp/infile.hcl
 ```
 
 ## Installation
