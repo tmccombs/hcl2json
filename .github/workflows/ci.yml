@@ -13,8 +13,7 @@ jobs:
     strategy:
       matrix:
         go:
-          - "1.21"
-          - "1.19"
+          - "~1.21.6"
     steps:
       - name: Setup
         uses: actions/setup-go@v5
