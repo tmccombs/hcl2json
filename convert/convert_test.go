@@ -305,6 +305,38 @@ func TestBlocksWithAndWithoutLabels(t *testing.T) {
 	}
 }
 
+func TestEscapeSequences(t *testing.T) {
+	input := `
+block "label_one" "label_two" {
+	string  = "$${to_stay_escaped}"
+	string2 = "${var.not_escaped} and $${should_stay_escaped}"
+	string3 = "$${stay1}" + "$${stay2}"
+	string4 = "$$${triple}"
+}`
+
+	expected := `{
+	"block": {
+		"label_one": {
+			"label_two": [
+				{
+					"string": "$${to_stay_escaped}",
+					"string2": "${var.not_escaped} and $${should_stay_escaped}",
+					"string3": "${\"$${stay1}\" + \"$${stay2}\"}",
+					"string4": "$$${triple}"
+				}
+			]
+		}
+	}
+}`
+
+	convertedBytes, err := Bytes([]byte(input), "", Options{})
+	if err != nil {
+		t.Fatal("parse bytes:", err)
+	}
+
+	compareTest(t, convertedBytes, expected)
+}
+
 func compareTest(t *testing.T, input []byte, expected string) {
 	var indented bytes.Buffer
 	if err := json.Indent(&indented, input, "", "\t"); err != nil {
