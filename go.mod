@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/hashicorp/hcl/v2 v2.20.0
-	github.com/zclconf/go-cty v1.14.3
+	github.com/zclconf/go-cty v1.14.4
 )
 
 require (
