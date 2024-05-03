@@ -305,6 +305,29 @@ func TestBlocksWithAndWithoutLabels(t *testing.T) {
 	}
 }
 
+// https://github.com/tmccombs/hcl2json/issues/96
+func TestTemplateEscapes(t *testing.T) {
+	input := `
+		v = "$${one}"
+		x = "${var.y} $${oh}"
+		y = "%{ if true }%%{hi}%{ endif }"
+		z = "%%{oh"
+	`
+
+	expected := `{
+	"v": "$${one}",
+	"x": "${var.y} $${oh}",
+	"y": "%{if true}%%{hi}%{endif}",
+	"z": "%%{oh"
+}`
+
+	converted, err := Bytes([]byte(input), "", Options{})
+	if err != nil {
+		t.Fatal("Failed to parse: ", err)
+	}
+	compareTest(t, converted, expected)
+}
+
 func compareTest(t *testing.T, input []byte, expected string) {
 	var indented bytes.Buffer
 	if err := json.Indent(&indented, input, "", "\t"); err != nil {
