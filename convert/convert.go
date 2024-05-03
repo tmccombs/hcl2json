@@ -219,6 +219,15 @@ func (c *converter) convertUnary(v *hclsyntax.UnaryOpExpr) (interface{}, error) 
 	return ctyjson.SimpleJSONValue{Value: val}, nil
 }
 
+// Escape sequences that have special meaning in hcl json
+// such as ${ that come from literals, that shouldn't have
+// real interpolation
+func escapeLiteral(lit string) string {
+	lit = strings.Replace(lit, "${", "$${", -1)
+	lit = strings.Replace(lit, "%{", "%%{", -1)
+	return lit
+}
+
 func (c *converter) convertTemplate(t *hclsyntax.TemplateExpr) (string, error) {
 	if t.IsStringLiteral() {
 		// safe because the value is just the string
@@ -226,7 +235,7 @@ func (c *converter) convertTemplate(t *hclsyntax.TemplateExpr) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return v.AsString(), nil
+		return escapeLiteral(v.AsString()), nil
 	}
 	var builder strings.Builder
 	for _, part := range t.Parts {
@@ -251,7 +260,7 @@ func (c *converter) convertStringPart(expr hclsyntax.Expression) (string, error)
 		if err != nil {
 			return "", err
 		}
-		return s.AsString(), nil
+		return escapeLiteral(s.AsString()), nil
 	case *hclsyntax.TemplateExpr:
 		return c.convertTemplate(v)
 	case *hclsyntax.TemplateWrapExpr:
