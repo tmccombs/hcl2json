@@ -3,7 +3,7 @@ module github.com/tmccombs/hcl2json
 go 1.19
 
 require (
-	github.com/hashicorp/hcl/v2 v2.20.1
+	github.com/hashicorp/hcl/v2 v2.21.0
 	github.com/zclconf/go-cty v1.14.4
 )
 
