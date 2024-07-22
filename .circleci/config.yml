@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   prodsec: snyk/prodsec-orb@1
+  go: circleci/go@1.10.0
 
 jobs:
   security-scans:
