@@ -1,7 +1,17 @@
 version: 2.1
 
 orbs:
-  prodsec: snyk/prodsec-orb@1.0
+  prodsec: snyk/prodsec-orb@1
+
+jobs:
+  security-scans:
+    executor:
+      name: go/default
+      tag: "1.21"
+    steps:
+      - checkout
+      - prodsec/security_scans:
+          mode: auto
 
 workflows:
   version: 2
@@ -12,3 +22,7 @@ workflows:
           context:
             - snyk-bot-slack
           channel: group-infrastructure-as-code-alerts
+      - security-scans:
+          name: "Security Scans"
+          context:
+            - analysis-iac
