@@ -17,3 +17,5 @@ hcl2json
 
 # Golang vendor files
 vendor/
+# Added by goreleaser init:
+dist/
