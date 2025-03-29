@@ -27,6 +27,9 @@ archives:
     format_overrides:
       - goos: windows
         formats: [ 'zip' ]
+    files:
+      - LICENSE
+      - README.md
 
 dockers:
   - image_templates:
