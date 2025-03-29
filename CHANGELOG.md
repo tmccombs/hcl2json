@@ -1,3 +1,13 @@
+# 0.6.7
+
+- Fix `-version` flag that broke in 0.6.6
+- Include raw binary files in github release again
+- Change github release artifact naming to be consistent with before 0.6.6
+
+### Warning
+
+I will probably remove the raw binary artifacts at some point, possibly in 0.7.0
+
 # 0.6.6
 
 - Use goreleaser to do deploys.
