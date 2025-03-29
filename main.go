@@ -12,7 +12,7 @@ import (
 	"github.com/tmccombs/hcl2json/convert"
 )
 
-var Version string = "devel"
+var version string = "devel"
 
 const versionUsage = "Print the version of hcl2json"
 
@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	if printVersion {
-		fmt.Println(Version)
+		fmt.Println(version)
 		os.Exit(0)
 	}
 
