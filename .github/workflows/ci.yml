@@ -20,7 +20,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 20
       - name: Build
