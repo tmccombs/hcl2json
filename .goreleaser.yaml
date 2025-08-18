@@ -15,6 +15,9 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
 
 archives:
   - formats: [ 'tar.gz', 'binary' ]
@@ -33,10 +36,11 @@ archives:
 
 dockers:
   - image_templates:
-    - "tmccombs/{{ .ProjectName }}:latest"
-    - "tmccombs/{{ .ProjectName }}:{{ .Version }}"
-    - "tmccombs/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
+    - "tmccombs/{{ .ProjectName }}:{{ .Version }}-amd64"
+    goos: linux
+    goarch: amd64
     build_flag_templates:
+      - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.title={{ .ProjectName }}"
       - "--label=org.opencontainers.image.description=Convert HCL to JSON"
       - "--label=org.opencontainers.image.url=https://github.com/tmccombs/hcl2json"
@@ -45,6 +49,34 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.created={{ .Date }}"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
+  - image_templates:
+    - "tmccombs/{{ .ProjectName }}:{{ .Version }}-arm64"
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Convert HCL to JSON"
+      - "--label=org.opencontainers.image.url=https://github.com/tmccombs/hcl2json"
+      - "--label=org.opencontainers.image.source=https://github.com/tmccombs/hcl2json"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+
+docker_manifests:
+  - name_template: "tmccombs/{{ .ProjectName }}:{{ .Version }}"
+    image_templates:
+      - "tmccombs/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "tmccombs/{{ .ProjectName }}:{{ .Version }}-arm64"
+  - name_template: "tmccombs/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "tmccombs/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "tmccombs/{{ .ProjectName }}:{{ .Version }}-arm64"
+  - name_template: "tmccombs/{{ .ProjectName }}:latest"
+    image_templates:
+      - "tmccombs/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "tmccombs/{{ .ProjectName }}:{{ .Version }}-arm64"
 
 
 changelog:
