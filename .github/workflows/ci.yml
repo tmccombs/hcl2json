@@ -16,7 +16,7 @@ jobs:
           - "~1.24.1"
     steps:
       - name: Setup
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go }}
       - name: Check out code
